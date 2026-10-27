@@ -3,6 +3,12 @@ from pathlib import Path
 from src.data_loader import load_data
 from src.analyzer import analyse_resource
 from src.investigator import investigate_cause
+from src.visualizer import (
+    plot_consumption,
+    plot_occupancy_vs_consumption,
+    plot_equipment_hours,
+    show_correlation_analysis
+)
 
 
 PROJECT_ROOT = Path(__file__).resolve().parent
@@ -140,19 +146,21 @@ def main():
             print("2. Analyse electricity")
             print("3. Analyse both")
             print("4. View dataset summary")
-            print("5. Exit")
-            choice = input(
-                "\nEnter your choice: "
-            ).strip()
+            print("5. Visualize water consumption")
+            print("6. Visualize electricity consumption")
+            print("7. Compare occupancy and water consumption")
+            print("8. Compare occupancy and electricity consumption")
+            print("9. Compare equipment hours and electricity consumption")
+            print("10. View correlation analysis")
+            print("11. Exit")
+            
+            choice = input("\nEnter your choice: ").strip()
             if choice == "1":
                 resources = ["water"]
             elif choice == "2":
                 resources = ["electricity"]
             elif choice == "3":
-                resources = [
-                    "water",
-                    "electricity"
-                ]
+                resources = ["water", "electricity"]
             elif choice == "4":
                 print("\nDataset summary:")
                 print(df.describe(include="all").to_string())
@@ -162,45 +170,46 @@ def main():
                     .mean()
                     .to_string()
                 )
+
                 continue
-
             elif choice == "5":
-                print("\nApplication closed.")
+                plot_consumption(df, "water")
+                continue
+            elif choice == "6":
+                plot_consumption(df, "electricity")
+                continue
+            elif choice == "7":
+                plot_occupancy_vs_consumption(df, "water")
+                continue
+            elif choice == "8":
+                plot_occupancy_vs_consumption(df, "electricity")
+                continue
+            elif choice == "9":
+                plot_equipment_hours(df)
+                continue
+            elif choice == "10":
+                show_correlation_analysis(df)
+                continue
+            elif choice == "11":
+                print("Application closed.")
                 break
-
             else:
-                print(
-                    "Invalid choice. Please enter 1, 2, 3, 4, or 5."
-                )
+                print("Invalid choice. Please enter a number from 1 to 11.")
                 continue
 
             for resource in resources:
                 try:
-                    result = analyse_resource(
-                        df,
-                        resource
-                    )
-
-                    investigation = investigate_cause(
-                        result
-                    )
-
-                    print_report(
-                        result,
-                        investigation
-                    )
-
-                    save_report(
-                        result,
-                        investigation
-                    )
-
+                    result = analyse_resource(df, resource)
+                    investigation = investigate_cause(result)
+                    print_report(result, investigation)
+                    save_report(result, investigation)
+                    
                 except ValueError as error:
-                    print(
-                        f"Could not analyse {resource}: {error}"
-                    )
+                    print(f"Could not analyse {resource}: {error}")
+                    
     except (FileNotFoundError, ValueError) as error:
-        print(f"\nApplication error: {error}")
+            print(f"\nApplication error: {error}")
+
 
 if __name__ == "__main__":
     main()
